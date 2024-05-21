@@ -72,6 +72,7 @@ class Base_Scene extends Scene {
         super();
         this.hover = this.swarm = false;
         this.ol = false; //controls display outline for the cubes
+        this.place = false;
         this.colors = [hex_color("#1a9ffa"), hex_color("#1a9ffa"), hex_color("#1a9ffa"), hex_color("#1a9ffa"),
                         hex_color("#1a9ffa"),hex_color("#1a9ffa"),hex_color("#1a9ffa"),hex_color("#1a9ffa")]; //colors for each cube
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
@@ -122,6 +123,10 @@ export class CubeStacker extends Base_Scene {
     constructor() {
         super();
         this.set_colors();
+        this.next = vec3 (5,5,5);
+        this.scaling_factor = 1/5;
+        this.counter = 0;
+        this.transforms = [];
     }
 
     set_colors() {
@@ -152,6 +157,9 @@ export class CubeStacker extends Base_Scene {
         this.key_triggered_button("Sit still", ["m"], () => {
             // TODO:  Requirement 3d:  Set a flag here that will toggle your swaying motion on and off.
             this.hover = !this.hover;
+        });
+        this.key_triggered_button("Place", ["p"], () => {
+            this.place = true;
         });
     }
 
@@ -208,8 +216,23 @@ export class CubeStacker extends Base_Scene {
         let desired = model_transform.times(Mat4.translation(0, 2, 5));
         desired = Mat4.inverse(desired)
         program_state.camera_inverse = desired;
-        let new_block_transform = Mat4.identity().times(Mat4.translation(2*Math.sin(t),5.2,0)).times(Mat4.scale(5,1/5,5));
+        //5.2 because we scale the cube by 1/5, so it is 5 + 1*0.2 = 5.2
+        let new_block_transform = Mat4.identity().times(Mat4.translation(2*Math.sin(t),this.next[1]+this.scaling_factor,0)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.plastic.override({color:white}));
+        if(this.place){
+            let current_pos = 2*Math.sin(t)
+            let place_block_transform = Mat4.identity().times(Mat4.translation(current_pos,this.next[1]+this.scaling_factor,0)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+            this.transforms.push(place_block_transform);
+            this.next[1] = this.next[1]+this.scaling_factor
+            this.counter = this.counter + 1
+            this.place = false
+        }
+        if(this.counter !== 0){
+            for (let i = 0; i < this.counter; i++){
+                console.log(this.transforms)
+                this.shapes.cube.draw(context, program_state, this.transforms[i], this.materials.plastic.override({color:white}));
+            }
+        }
         // model_transform = model_transform.times(Mat4.scale(1,1/1.5,1));
         // for (let i = 1; i <= 5; i++){
         //     model_transform = this.draw_box(context, program_state, model_transform, blue);
