@@ -79,12 +79,15 @@ class Base_Scene extends Scene {
             'cube': new Cube(),
             'outline': new Cube_Outline(),
             'strip': new Cube_Single_Strip(),
+            ball: new defs.Subdivision_Sphere(4),
         };
 
         // *** Materials
         this.materials = {
             plastic: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
+            test: new Material(new defs.Phong_Shader(),
+                {ambient: 0.1, diffusivity: 1, specularity: 1, color: hex_color("#1a9ffa")}),
         };
         // The white material and basic shader are used for drawing the outline.
         this.white = new Material(new defs.Basic_Shader());
@@ -98,18 +101,18 @@ class Base_Scene extends Scene {
         if (!context.scratchpad.controls) {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(Mat4.translation(5, -10, -30));
+            program_state.set_camera(Mat4.translation(0, -20, -80));
         }
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
 
         // *** Lights: *** Values of vector or point lights.
-        const light_position = vec4(0, 5, 5, 1);
-        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
+        // const light_position = vec4(0, 5, 5, 1);
+        // program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
     }
 }
 
-export class Assignment2 extends Base_Scene {
+export class CubeStacker extends Base_Scene {
     /**
      * This Scene object can be added to any display canvas.
      * We isolate that code so it can be experimented with on its own.
@@ -135,7 +138,7 @@ export class Assignment2 extends Base_Scene {
         }
         // TODO:  Create a class member variable to store your cube's colors.
         // Hint:  You might need to create a member variable at somewhere to store the colors, using `this`.
-        // Hint2: You can consider add a constructor for class Assignment2, or add member variables in Base_Scene's constructor.
+        // Hint2: You can consider add a constructor for class CubeStacker, or add member variables in Base_Scene's constructor.
     }
 
     make_control_panel() {
@@ -165,7 +168,6 @@ export class Assignment2 extends Base_Scene {
 
         model_transform = model_transform.times(Mat4.translation(0,3,0))
             .times(Mat4.translation(-1,-1.5,0))
-            .times(Mat4.rotation(angle, 0, 0,1))
             .times(Mat4.translation(1, 1.5,0))
             .times(Mat4.scale(1, 1.5, 1));
 
@@ -187,18 +189,30 @@ export class Assignment2 extends Base_Scene {
     display(context, program_state) {
         super.display(context, program_state);
         const blue = hex_color("#1a9ffa");
+        const white = hex_color("#ffffff");
         let model_transform = Mat4.identity();
         // Example for drawing a cube, you can remove this line if needed
-        model_transform = model_transform.times(Mat4.scale(1, 1.5, 1));
+        model_transform = model_transform.times(Mat4.scale(5, 5, 5));
+        let t = this.t = program_state.animation_time / 1000
+        let ball_transform = Mat4.identity().times(Mat4.rotation(t,0,1,0)).times(Mat4.translation(20,0,0)).times(Mat4.scale(5,5,5));
+        const light_pos = vec4 (1, 10, 5, 1);
+        light_pos[0] = 10*Math.sin(t);
+        program_state.lights = [new Light(light_pos, white, 10000)];
+        this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:white}));
         if(this.ol){
             this.shapes.outline.draw(context, program_state, model_transform, this.white, "LINES");
         }
         else{
-            this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color:this.colors[0]}));
+            this.shapes.cube.draw(context, program_state, model_transform, this.materials.test);
         }
-        model_transform = model_transform.times(Mat4.scale(1,1/1.5,1));
-        for (let i = 1; i <= 7; i++){
-            model_transform = this.draw_box(context, program_state, model_transform, this.colors[i], i);
-        }
+        let desired = model_transform.times(Mat4.translation(0, 2, 5));
+        desired = Mat4.inverse(desired)
+        program_state.camera_inverse = desired;
+        let new_block_transform = Mat4.identity().times(Mat4.translation(2*Math.sin(t),5.2,0)).times(Mat4.scale(5,1/5,5));
+        this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.plastic.override({color:white}));
+        // model_transform = model_transform.times(Mat4.scale(1,1/1.5,1));
+        // for (let i = 1; i <= 5; i++){
+        //     model_transform = this.draw_box(context, program_state, model_transform, blue);
+        // }
     }
 }

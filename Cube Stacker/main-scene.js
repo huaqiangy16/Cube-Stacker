@@ -8,7 +8,7 @@ import {Surfaces_Demo} from "./examples/surfaces-demo.js"
 import {Text_Demo} from "./examples/text-demo.js"
 import {Transforms_Sandbox} from "./examples/transforms-sandbox.js"
 import {Assignment3} from "./assignment3.js";
-import {Assignment2} from "./assignment2.js";
+import {CubeStacker} from "./CubeStacker.js";
 
 // Pull these names into this module's scope for convenience:
 const {
@@ -42,7 +42,7 @@ Object.assign(defs,
 
 // (Can define Main_Scene's class here)
 
-const Main_Scene = Assignment2;
+const Main_Scene = CubeStacker;
 const Additional_Scenes = [];
 
 export {Main_Scene, Additional_Scenes, Canvas_Widget, Code_Widget, Text_Widget, defs}
