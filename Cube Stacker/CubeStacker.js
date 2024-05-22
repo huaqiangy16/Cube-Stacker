@@ -82,6 +82,7 @@ class Base_Scene extends Scene {
             'strip': new Cube_Single_Strip(),
             ball: new defs.Subdivision_Sphere(4),
         };
+        this.camera_matrix = Mat4.translation(0, -8, -25).times(Mat4.rotation(0.5,1,1,0));
 
         // *** Materials
         this.materials = {
@@ -102,7 +103,7 @@ class Base_Scene extends Scene {
         if (!context.scratchpad.controls) {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(Mat4.translation(0, -20, -80));
+            program_state.set_camera(this.camera_matrix);
         }
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
@@ -127,6 +128,7 @@ export class CubeStacker extends Base_Scene {
         this.scaling_factor = 1/5;
         this.counter = 0;
         this.transforms = [];
+        this.light_pos = vec4 (1, 10, 5, 1);
     }
 
     set_colors() {
@@ -203,9 +205,8 @@ export class CubeStacker extends Base_Scene {
         model_transform = model_transform.times(Mat4.scale(5, 5, 5));
         let t = this.t = program_state.animation_time / 1000
         let ball_transform = Mat4.identity().times(Mat4.rotation(t,0,1,0)).times(Mat4.translation(20,0,0)).times(Mat4.scale(5,5,5));
-        const light_pos = vec4 (1, 10, 5, 1);
-        light_pos[0] = 10*Math.sin(t);
-        program_state.lights = [new Light(light_pos, white, 10000)];
+        this.light_pos[0] = 10*Math.sin(t);
+        program_state.lights = [new Light(this.light_pos, white, 10000)];
         this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:white}));
         if(this.ol){
             this.shapes.outline.draw(context, program_state, model_transform, this.white, "LINES");
@@ -213,29 +214,24 @@ export class CubeStacker extends Base_Scene {
         else{
             this.shapes.cube.draw(context, program_state, model_transform, this.materials.test);
         }
-        let desired = model_transform.times(Mat4.translation(0, 2, 5));
-        desired = Mat4.inverse(desired)
-        program_state.camera_inverse = desired;
         //5.2 because we scale the cube by 1/5, so it is 5 + 1*0.2 = 5.2
         let new_block_transform = Mat4.identity().times(Mat4.translation(2*Math.sin(t),this.next[1]+this.scaling_factor,0)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.plastic.override({color:white}));
         if(this.place){
-            let current_pos = 2*Math.sin(t)
+            let current_pos = 2*Math.sin(t);
             let place_block_transform = Mat4.identity().times(Mat4.translation(current_pos,this.next[1]+this.scaling_factor,0)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
             this.transforms.push(place_block_transform);
-            this.next[1] = this.next[1]+this.scaling_factor
-            this.counter = this.counter + 1
+            this.next[1] = this.next[1]+this.scaling_factor;
+            this.counter = this.counter + 1;
+            this.camera_matrix = this.camera_matrix.times(Mat4.translation(0,-1*this.scaling_factor,0));
+            this.light_pos[1] = this.light_pos[1]+this.scaling_factor;
+            program_state.set_camera(this.camera_matrix);
             this.place = false
         }
         if(this.counter !== 0){
             for (let i = 0; i < this.counter; i++){
-                console.log(this.transforms)
                 this.shapes.cube.draw(context, program_state, this.transforms[i], this.materials.plastic.override({color:white}));
             }
         }
-        // model_transform = model_transform.times(Mat4.scale(1,1/1.5,1));
-        // for (let i = 1; i <= 5; i++){
-        //     model_transform = this.draw_box(context, program_state, model_transform, blue);
-        // }
     }
 }
