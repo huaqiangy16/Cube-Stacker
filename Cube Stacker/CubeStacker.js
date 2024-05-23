@@ -131,7 +131,7 @@ export class CubeStacker extends Base_Scene {
         super();
         this.set_colors();
         this.next = vec3 (5,5,5);
-        this.scaling_factor = 1/5;
+        this.scaling_factor = 0.5;
         this.counter = 0;
         this.transforms = [];
         this.light_pos = vec4 (1, 10, 5, 1);
@@ -157,17 +157,6 @@ export class CubeStacker extends Base_Scene {
     }
 
     make_control_panel() {
-        // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
-        this.key_triggered_button("Change Colors", ["c"], this.set_colors);
-        // Add a button for controlling the scene.
-        this.key_triggered_button("Outline", ["o"], () => {
-            // TODO:  Requirement 5b:  Set a flag here that will toggle your outline on and off
-            this.ol = !this.ol;
-        });
-        this.key_triggered_button("Sit still", ["m"], () => {
-            // TODO:  Requirement 3d:  Set a flag here that will toggle your swaying motion on and off.
-            this.hover = !this.hover;
-        });
         this.key_triggered_button("Place", ["p"], () => {
             this.place = true;
         });
