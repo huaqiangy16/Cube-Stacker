@@ -35,7 +35,8 @@ Object.assign(defs,
     {Surfaces_Demo},
     {Text_Demo},
     {Transforms_Sandbox},
-    {Assignment3}
+    {Assignment3},
+    {CubeStacker}
 );
 
 // ******************** End extra step

@@ -1,7 +1,8 @@
 import {defs, tiny} from './examples/common.js';
+import { Text_Line } from "./examples/text-demo.js";
 
 const {
-    Vector, Vector3, vec, vec3, vec4, color, hex_color, Matrix, Mat4, Light, Shape, Material, Scene,
+    Vector, Vector3, vec, vec3, vec4, color, hex_color, Matrix, Mat4, Light, Shape, Material, Scene, Texture
 } = tiny;
 
 class Cube extends Shape {
@@ -81,8 +82,9 @@ class Base_Scene extends Scene {
             'outline': new Cube_Outline(),
             'strip': new Cube_Single_Strip(),
             ball: new defs.Subdivision_Sphere(4),
+            text: new Text_Line(35)
         };
-        this.camera_matrix = Mat4.translation(0, -8, -25).times(Mat4.rotation(0.5,1,1,0));
+        this.camera_matrix = Mat4.translation(0, -8, -40).times(Mat4.rotation(0.5,1,0,0)).times(Mat4.rotation(0.8,0,1,0));
 
         // *** Materials
         this.materials = {
@@ -90,6 +92,10 @@ class Base_Scene extends Scene {
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
             test: new Material(new defs.Phong_Shader(),
                 {ambient: 0.1, diffusivity: 1, specularity: 1, color: hex_color("#1a9ffa")}),
+            text: new Material(new defs.Textured_Phong(1), {
+                ambient: 1, diffusivity: 0, specularity: 0,
+                texture: new Texture("assets/text.png")
+            }),
         };
         // The white material and basic shader are used for drawing the outline.
         this.white = new Material(new defs.Basic_Shader());
@@ -129,6 +135,8 @@ export class CubeStacker extends Base_Scene {
         this.counter = 0;
         this.transforms = [];
         this.light_pos = vec4 (1, 10, 5, 1);
+        this.title_height = 22;
+        this.counter_height = 18;
     }
 
     set_colors() {
@@ -205,8 +213,17 @@ export class CubeStacker extends Base_Scene {
         model_transform = model_transform.times(Mat4.scale(5, 5, 5));
         let t = this.t = program_state.animation_time / 1000
         let ball_transform = Mat4.identity().times(Mat4.rotation(t,0,1,0)).times(Mat4.translation(20,0,0)).times(Mat4.scale(5,5,5));
-        this.light_pos[0] = 10*Math.sin(t);
+        this.light_pos[0] = 10*Math.sin(2*t);
         program_state.lights = [new Light(this.light_pos, white, 10000)];
+        let example_text = "Cube Stacker"
+        let example_transform = Mat4.identity().times(Mat4.translation(-10,this.title_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0));
+        this.shapes.text.set_string(example_text,context.context);
+        this.shapes.text.draw(context, program_state, example_transform, this.materials.text);
+        this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:white}));
+        let counter_text = this.counter.toString()
+        let counter_transform = Mat4.identity().times(Mat4.translation(0,this.counter_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0));
+        this.shapes.text.set_string(counter_text,context.context);
+        this.shapes.text.draw(context, program_state, counter_transform, this.materials.text);
         this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:white}));
         if(this.ol){
             this.shapes.outline.draw(context, program_state, model_transform, this.white, "LINES");
@@ -215,16 +232,38 @@ export class CubeStacker extends Base_Scene {
             this.shapes.cube.draw(context, program_state, model_transform, this.materials.test);
         }
         //5.2 because we scale the cube by 1/5, so it is 5 + 1*0.2 = 5.2
-        let new_block_transform = Mat4.identity().times(Mat4.translation(2*Math.sin(t),this.next[1]+this.scaling_factor,0)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+        let new_block_transform = Mat4.identity()
+        if(this.counter === 0){
+            new_block_transform = new_block_transform.times(Mat4.translation(0,this.next[1]+this.scaling_factor,11*Math.sin(2*t))).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+        }
+        else if(this.counter % 2 === 0){
+            new_block_transform = new_block_transform.times(Mat4.translation(0,this.next[1]+this.scaling_factor*2,11*Math.sin(2*t))).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+        }
+        else if(this.counter % 2 === 1){
+            new_block_transform = new_block_transform.times(Mat4.translation(11*Math.sin(2*t),this.next[1]+this.scaling_factor*2,0)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+        }
         this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.plastic.override({color:white}));
         if(this.place){
-            let current_pos = 2*Math.sin(t);
-            let place_block_transform = Mat4.identity().times(Mat4.translation(current_pos,this.next[1]+this.scaling_factor,0)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+            let current_pos = 11*Math.sin(2*t);
+            let place_block_transform = Mat4.identity()
+            if(this.counter === 0){
+                this.next[1] = this.next[1]+this.scaling_factor;
+                place_block_transform = place_block_transform.times(Mat4.translation(0,this.next[1],current_pos)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+            }
+            else if(this.counter % 2 === 0){
+                this.next[1] = this.next[1]+this.scaling_factor*2;
+                place_block_transform = place_block_transform.times(Mat4.translation(0,this.next[1],current_pos)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+            }
+            else if(this.counter % 2 === 1){
+                this.next[1] = this.next[1]+this.scaling_factor*2;
+                place_block_transform = place_block_transform.times(Mat4.translation(current_pos,this.next[1],0)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+            }
             this.transforms.push(place_block_transform);
-            this.next[1] = this.next[1]+this.scaling_factor;
             this.counter = this.counter + 1;
-            this.camera_matrix = this.camera_matrix.times(Mat4.translation(0,-1*this.scaling_factor,0));
-            this.light_pos[1] = this.light_pos[1]+this.scaling_factor;
+            this.camera_matrix = this.camera_matrix.times(Mat4.translation(0,-1*this.scaling_factor*2,0));
+            this.light_pos[1] = this.light_pos[1]+this.scaling_factor*2;
+            this.title_height = this.title_height+this.scaling_factor*2;
+            this.counter_height = this.counter_height+this.scaling_factor*2;
             program_state.set_camera(this.camera_matrix);
             this.place = false
         }
