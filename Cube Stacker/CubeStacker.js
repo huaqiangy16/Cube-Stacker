@@ -247,8 +247,8 @@ export class CubeStacker extends Base_Scene {
                 cut_size = current_pos - this.prev_z;
                 let cur_pos_z = current_pos - cut_size;
                 this.prev_z = cur_pos_z
-                this.next[2] = this.next[2] - Math.abs(cut_size);
                 place_block_transform = place_block_transform.times(Mat4.translation(0,this.next[1],cur_pos_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+                this.next[2] = this.next[2] - Math.abs(cut_size);
             }
             else if(this.counter % 2 === 0){
                 cut_size = current_pos - this.prev_z;
@@ -257,8 +257,9 @@ export class CubeStacker extends Base_Scene {
                 cut_size = current_pos - this.prev_z;
                 let cur_pos_z = current_pos - cut_size;
                 this.prev_z = cur_pos_z
-                this.next[2] = this.next[2] - Math.abs(cut_size);
+
                 place_block_transform = place_block_transform.times(Mat4.translation(0,this.next[1],cur_pos_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+                this.next[2] = this.next[2] - Math.abs(cut_size);
             }
             else if(this.counter % 2 === 1){
                 this.next[1] = this.next[1]+this.scaling_factor*2;
@@ -268,9 +269,8 @@ export class CubeStacker extends Base_Scene {
                 console.log("this.next[0] is " + this.next[0]);
                 let cur_pos_x = current_pos - cut_size;
                 this.prev_x = cur_pos_x;
-                this.next[0] = this.next[0] - Math.abs(cut_size);
                 place_block_transform = place_block_transform.times(Mat4.translation(cur_pos_x,this.next[1],0)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
-
+                this.next[0] = this.next[0] - Math.abs(cut_size);
             }
             this.transforms.push(place_block_transform);
             this.counter = this.counter + 1;
