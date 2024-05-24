@@ -228,48 +228,49 @@ export class CubeStacker extends Base_Scene {
         //5.2 because we scale the cube by 1/5, so it is 5 + 1*0.2 = 5.2
         let new_block_transform = Mat4.identity()
         if(this.counter === 0){
-            new_block_transform = new_block_transform.times(Mat4.translation(this.prev_x,this.next[1]+this.scaling_factor,11*Math.sin(2*t))).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+            new_block_transform = new_block_transform.times(Mat4.translation(0,this.next[1]+this.scaling_factor,10*Math.sin(2*t))).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
         else if(this.counter % 2 === 0){
-            new_block_transform = new_block_transform.times(Mat4.translation(this.prev_x,this.next[1]+this.scaling_factor*2,11*Math.sin(2*t))).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+            new_block_transform = new_block_transform.times(Mat4.translation(0,this.next[1]+this.scaling_factor*2,10*Math.sin(2*t))).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
         else if(this.counter % 2 === 1){
-            new_block_transform = new_block_transform.times(Mat4.translation(11*Math.sin(2*t),this.next[1]+this.scaling_factor*2,this.prev_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+            new_block_transform = new_block_transform.times(Mat4.translation(10*Math.sin(2*t),this.next[1]+this.scaling_factor*2,0)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
         this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.plastic.override({color:white}));
         if(this.place){
-            let current_pos = 11*Math.sin(2*t);
+            let current_pos = 10*Math.sin(2*t);
             let place_block_transform = Mat4.identity()
             let cut_size = 0;
             if(this.counter === 0){
                 this.next[1] = this.next[1]+this.scaling_factor;
                 console.log("z difference is " + (current_pos - this.prev_z));
                 cut_size = current_pos - this.prev_z;
-                this.next[2] = this.next[2] - Math.abs(cut_size);
                 let cur_pos_z = current_pos - cut_size;
                 this.prev_z = cur_pos_z
                 place_block_transform = place_block_transform.times(Mat4.translation(0,this.next[1],cur_pos_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+                this.next[2] = this.next[2] - Math.abs(cut_size);
             }
             else if(this.counter % 2 === 0){
                 cut_size = current_pos - this.prev_z;
                 this.next[1] = this.next[1]+this.scaling_factor*2;
                 console.log("z difference is " + (current_pos - this.prev_z));
                 cut_size = current_pos - this.prev_z;
-                this.next[2] = this.next[2] - Math.abs(cut_size);
                 let cur_pos_z = current_pos - cut_size;
                 this.prev_z = cur_pos_z
 
                 place_block_transform = place_block_transform.times(Mat4.translation(0,this.next[1],cur_pos_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+                this.next[2] = this.next[2] - Math.abs(cut_size);
             }
             else if(this.counter % 2 === 1){
                 this.next[1] = this.next[1]+this.scaling_factor*2;
                 console.log("x difference is " + (current_pos - this.prev_x));
                 cut_size = current_pos - this.prev_z;
-                this.next[0] = this.next[0] - Math.abs(cut_size);
+
                 console.log("this.next[0] is " + this.next[0]);
                 let cur_pos_x = current_pos - cut_size;
                 this.prev_x = cur_pos_x;
                 place_block_transform = place_block_transform.times(Mat4.translation(cur_pos_x,this.next[1],0)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+                this.next[0] = this.next[0] - Math.abs(cut_size);
             }
             this.transforms.push(place_block_transform);
             this.counter = this.counter + 1;
