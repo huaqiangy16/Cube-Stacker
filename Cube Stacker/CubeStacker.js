@@ -130,8 +130,11 @@ export class CubeStacker extends Base_Scene {
     constructor() {
         super();
         this.set_colors();
-        this.next = vec3 (5,5,5);
         this.scaling_factor = 0.5;
+        //This is done to avoid having to have a separate condition for the 0th one
+        //Rather than just adding the scaling factor in that one case, we can still multiply
+        //by two since it's just adding twice, so if we subtract once we get the same result
+        this.next = vec3 (5,5-this.scaling_factor,5);
         this.counter = 0;
         this.transforms = [];
         this.light_pos = vec4 (1, 10, 5, 1);
@@ -227,13 +230,10 @@ export class CubeStacker extends Base_Scene {
         }
         //5.2 because we scale the cube by 1/5, so it is 5 + 1*0.2 = 5.2
         let new_block_transform = Mat4.identity()
-        if(this.counter === 0){
-            new_block_transform = new_block_transform.times(Mat4.translation(this.prev_x,this.next[1]+this.scaling_factor,10*Math.sin(2*t))).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
-        }
-        else if(this.counter % 2 === 0){
+        if(this.counter % 2 === 0){
             new_block_transform = new_block_transform.times(Mat4.translation(this.prev_x,this.next[1]+this.scaling_factor*2,10*Math.sin(2*t))).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
-        else if(this.counter % 2 === 1){
+        else {
             new_block_transform = new_block_transform.times(Mat4.translation(10*Math.sin(2*t),this.next[1]+this.scaling_factor*2,this.prev_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
         this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.plastic.override({color:white}));
@@ -241,16 +241,7 @@ export class CubeStacker extends Base_Scene {
             let current_pos = 10*Math.sin(2*t);
             let place_block_transform = Mat4.identity()
             let cut_size = 0;
-            if(this.counter === 0){
-                this.next[1] = this.next[1]+this.scaling_factor;
-                cut_size = current_pos - this.prev_z;
-                console.log("z difference is " + cut_size);
-                this.prev_z = current_pos;
-                console.log("this.next[2] is " + this.next[2]);
-                this.next[2] = this.next[2] - Math.abs(cut_size);
-                place_block_transform = place_block_transform.times(Mat4.translation(this.prev_x,this.next[1],current_pos)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
-            }
-            else if(this.counter % 2 === 0){
+            if(this.counter % 2 === 0){
                 cut_size = current_pos - this.prev_z;
                 console.log("z cut size is " + cut_size);
                 this.next[1] = this.next[1]+this.scaling_factor*2;
@@ -258,7 +249,7 @@ export class CubeStacker extends Base_Scene {
                 this.next[2] = this.next[2] - Math.abs(cut_size);
                 place_block_transform = place_block_transform.times(Mat4.translation(this.prev_x,this.next[1],current_pos)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
             }
-            else if(this.counter % 2 === 1){
+            else {
                 this.next[1] = this.next[1]+this.scaling_factor*2;
                 cut_size = current_pos - this.prev_x;
                 console.log("x difference is " + cut_size);
