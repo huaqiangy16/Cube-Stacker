@@ -186,9 +186,13 @@ export class CubeStacker extends Base_Scene {
             new_block_transform = new_block_transform.times(Mat4.translation(current_pos,this.next[1]+this.scaling_factor*2,this.prev_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
 
+        this.move_cut_blocks();
+        this.counter_changed = false;
+
         this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.plastic.override({color:this.white_color}));
         if(this.place){
 
+            this.counter_changed = true;
             this.next[1] = this.next[1]+this.scaling_factor*2;
 
             //this order still matters, but I pulled out some of the state change to make it easier
@@ -260,15 +264,23 @@ export class CubeStacker extends Base_Scene {
         let cut_block_transform = Mat4.identity();
         if(this.counter % 2 === 0){
             let cut_size = current_pos - this.prev_z;
-            let block_z_scale = cut_size > 0 ? current_pos + this.next[2] : current_pos - this.next[2];
-            cut_block_transform = cut_block_transform.times(Mat4.translation(this.prev_x, this.next[1], block_z_scale)).times(Mat4.scale(this.next[0], this.scaling_factor, cut_size));
+            let block_z_translate = cut_size > 0 ? current_pos + this.next[2] : current_pos - this.next[2];
+            cut_block_transform = cut_block_transform.times(Mat4.translation(this.prev_x, this.next[1], block_z_translate)).times(Mat4.scale(this.next[0], this.scaling_factor, cut_size));
         }
         else {
             let cut_size = current_pos - this.prev_x;
-            let block_x_scale = cut_size > 0 ? current_pos + this.next[0] : current_pos - this.next[0];
-            cut_block_transform = cut_block_transform.times(Mat4.translation(block_x_scale, this.next[1], this.prev_z)).times(Mat4.scale(cut_size, this.scaling_factor, this.next[2]));
+            let block_x_translate = cut_size > 0 ? current_pos + this.next[0] : current_pos - this.next[0];
+            cut_block_transform = cut_block_transform.times(Mat4.translation(block_x_translate, this.next[1], this.prev_z)).times(Mat4.scale(cut_size, this.scaling_factor, this.next[2]));
         }
         return cut_block_transform;
+    }
+
+    move_cut_blocks() {
+        for (let i = 0; i < this.counter; i++) {
+            this.cut_transforms[i] = i % 2 === 0 ?
+                this.cut_transforms[i].times(Mat4.translation(0, -0.2, 0.01)) :
+                this.cut_transforms[i].times(Mat4.translation(0.01, -0.2, 0));
+        }
     }
 
     //TODO: MAKE THIS SOMETHING REAL
