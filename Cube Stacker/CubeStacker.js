@@ -142,7 +142,7 @@ export class CubeStacker extends Base_Scene {
         this.counter_height = 18;
         this.prev_z = 0;
         this.prev_x = 0;
-        this.cur_xwidth 
+        this.white_color = hex_color("#ffffff");
     }
 
     set_colors() {
@@ -157,9 +157,6 @@ export class CubeStacker extends Base_Scene {
             this.colors[i] = new_color;
             pre_color = new_color;
         }
-        // TODO:  Create a class member variable to store your cube's colors.
-        // Hint:  You might need to create a member variable at somewhere to store the colors, using `this`.
-        // Hint2: You can consider add a constructor for class CubeStacker, or add member variables in Base_Scene's constructor.
     }
 
     make_control_panel() {
@@ -168,96 +165,32 @@ export class CubeStacker extends Base_Scene {
         });
     }
 
-    draw_box(context, program_state, model_transform, color, i) {
-        // TODO:  Helper function for requirement 3 (see hint).
-        //        This should make changes to the model_transform matrix, draw the next box, and return the newest model_transform.
-        // Hint:  You can add more parameters for this function, like the desired color, index of the box, etc
-        let t = this.t = program_state.animation_time / 1000
-        let angle = 0.025*Math.PI+.025*Math.PI*Math.sin((Math.PI)*t)
-        if(this.hover){
-            t = 0;
-            angle = 0.05*Math.PI
-        }
-
-        model_transform = model_transform.times(Mat4.translation(0,3,0))
-            .times(Mat4.translation(-1,-1.5,0))
-            .times(Mat4.translation(1, 1.5,0))
-            .times(Mat4.scale(1, 1.5, 1));
-
-        if(this.ol){
-            this.shapes.outline.draw(context, program_state, model_transform, this.white, "LINES");
-        }
-        else{
-            if(i % 2 == 1){
-                this.shapes.strip.draw(context, program_state, model_transform, this.materials.plastic.override({color:color}), "TRIANGLE_STRIP");
-            }
-            else{
-                this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: color}));
-            }
-        }
-        model_transform = model_transform.times(Mat4.scale(1,1/1.5,1));
-        return model_transform;
-    }
-
     display(context, program_state) {
         //game over is this.next[0] or this.next[2] <= 0
+        if (this.next[0] <= 0 || this.next[2] <= 0) {
+            this.draw_end_screen(context, program_state);
+            return;
+        }
+        //draw the base game
+        this.draw_base_game(context, program_state);
 
-        super.display(context, program_state);
-        const blue = hex_color("#1a9ffa");
-        const white = hex_color("#ffffff");
-        let model_transform = Mat4.identity();
-        // Example for drawing a cube, you can remove this line if needed
-        model_transform = model_transform.times(Mat4.scale(5, 5, 5));
-        let t = this.t = program_state.animation_time / 1000
-        let ball_transform = Mat4.identity().times(Mat4.rotation(t,0,1,0)).times(Mat4.translation(20,0,0)).times(Mat4.scale(5,5,5));
-        this.light_pos[0] = 10*Math.sin(2*t);
-        program_state.lights = [new Light(this.light_pos, white, 10000)];
-        let example_text = "Cube Stacker"
-        let example_transform = Mat4.identity().times(Mat4.translation(-10,this.title_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0));
-        this.shapes.text.set_string(example_text,context.context);
-        this.shapes.text.draw(context, program_state, example_transform, this.materials.text);
-        this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:white}));
-        let counter_text = this.counter.toString()
-        let counter_transform = Mat4.identity().times(Mat4.translation(0,this.counter_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0));
-        this.shapes.text.set_string(counter_text,context.context);
-        this.shapes.text.draw(context, program_state, counter_transform, this.materials.text);
-        this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:white}));
-        if(this.ol){
-            this.shapes.outline.draw(context, program_state, model_transform, this.white, "LINES");
-        }
-        else{
-            this.shapes.cube.draw(context, program_state, model_transform, this.materials.test);
-        }
-        //5.2 because we scale the cube by 1/5, so it is 5 + 1*0.2 = 5.2
-        let new_block_transform = Mat4.identity()
+        let current_pos = 10*Math.sin(2*this.t);
+        let new_block_transform = Mat4.identity();
+
         if(this.counter % 2 === 0){
-            new_block_transform = new_block_transform.times(Mat4.translation(this.prev_x,this.next[1]+this.scaling_factor*2,10*Math.sin(2*t))).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+            new_block_transform = new_block_transform.times(Mat4.translation(this.prev_x,this.next[1]+this.scaling_factor*2,current_pos)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
         else {
-            new_block_transform = new_block_transform.times(Mat4.translation(10*Math.sin(2*t),this.next[1]+this.scaling_factor*2,this.prev_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+            new_block_transform = new_block_transform.times(Mat4.translation(current_pos,this.next[1]+this.scaling_factor*2,this.prev_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
-        this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.plastic.override({color:white}));
+
+        this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.plastic.override({color:this.white_color}));
         if(this.place){
-            let current_pos = 10*Math.sin(2*t);
-            let place_block_transform = Mat4.identity()
-            let cut_size = 0;
-            if(this.counter % 2 === 0){
-                cut_size = current_pos - this.prev_z;
-                console.log("z cut size is " + cut_size);
-                this.next[1] = this.next[1]+this.scaling_factor*2;
-                this.prev_z = current_pos
-                this.next[2] = this.next[2] - Math.abs(cut_size);
-                place_block_transform = place_block_transform.times(Mat4.translation(this.prev_x,this.next[1],current_pos)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
-            }
-            else {
-                this.next[1] = this.next[1]+this.scaling_factor*2;
-                cut_size = current_pos - this.prev_x;
-                console.log("x difference is " + cut_size);
-                console.log("this.next[0] is " + this.next[0]);
-                this.prev_x = current_pos;
-                this.next[0] = this.next[0] - Math.abs(cut_size);
-                place_block_transform = place_block_transform.times(Mat4.translation(current_pos,this.next[1],this.prev_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
-            }
+            
+            let place_block_transform = this.get_place_block_transform(current_pos);
+            let cut_block_transform = this.get_cut_block_transform(current_pos);
+
+            //Set up everything for the placed block
             this.transforms.push(place_block_transform);
             this.counter = this.counter + 1;
             this.camera_matrix = this.camera_matrix.times(Mat4.translation(0,-1*this.scaling_factor*2,0));
@@ -265,12 +198,77 @@ export class CubeStacker extends Base_Scene {
             this.title_height = this.title_height+this.scaling_factor*2;
             this.counter_height = this.counter_height+this.scaling_factor*2;
             program_state.set_camera(this.camera_matrix);
-            this.place = false
+            this.place = false;
         }
-        if(this.counter !== 0){
-            for (let i = 0; i < this.counter; i++){
-                this.shapes.cube.draw(context, program_state, this.transforms[i], this.materials.plastic.override({color:white}));
-            }
+        for (let i = 0; i < this.counter; i++){
+            this.shapes.cube.draw(context, program_state, this.transforms[i], this.materials.plastic.override({color:this.white_color}));
         }
+    }
+
+    draw_base_game(context, program_state) {
+        super.display(context, program_state);
+        const blue = hex_color("#1a9ffa");
+        let model_transform = Mat4.identity();
+        model_transform = model_transform.times(Mat4.scale(5, 5, 5));
+        let t = this.t = program_state.animation_time / 1000
+        let ball_transform = Mat4.identity().times(Mat4.rotation(t,0,1,0)).times(Mat4.translation(20,0,0)).times(Mat4.scale(5,5,5));
+        this.light_pos[0] = 10*Math.sin(2*this.t);
+        program_state.lights = [new Light(this.light_pos, this.white_color, 10000)];
+        let example_text = "Cube Stacker"
+        let example_transform = Mat4.identity().times(Mat4.translation(-10,this.title_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0));
+        this.shapes.text.set_string(example_text,context.context);
+        this.shapes.text.draw(context, program_state, example_transform, this.materials.text);
+        this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:this.white_color}));
+        let counter_text = this.counter.toString()
+        let counter_transform = Mat4.identity().times(Mat4.translation(0,this.counter_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0));
+        this.shapes.text.set_string(counter_text,context.context);
+        this.shapes.text.draw(context, program_state, counter_transform, this.materials.text);
+        this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:this.white_color}));
+        this.shapes.cube.draw(context, program_state, model_transform, this.materials.test);
+    }
+
+    get_place_block_transform(current_pos) {
+        let place_block_transform = Mat4.identity();
+        let cut_size = 0;
+        if(this.counter % 2 === 0){
+            cut_size = current_pos - this.prev_z;
+            console.log("z cut size is " + cut_size);
+            this.next[1] = this.next[1]+this.scaling_factor*2;
+            this.prev_z = current_pos;
+            this.next[2] = this.next[2] - Math.abs(cut_size);
+            place_block_transform = place_block_transform.times(Mat4.translation(this.prev_x,this.next[1],current_pos)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+        }
+        else {
+            this.next[1] = this.next[1]+this.scaling_factor*2;
+            cut_size = current_pos - this.prev_x;
+            console.log("x difference is " + cut_size);
+            console.log("this.next[0] is " + this.next[0]);
+            this.prev_x = current_pos;
+            this.next[0] = this.next[0] - Math.abs(cut_size);
+            place_block_transform = place_block_transform.times(Mat4.translation(current_pos,this.next[1],this.prev_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+        }
+        return place_block_transform;
+    }
+
+    get_cut_block_transform(current_pos) {
+        let cut_block_transform = Mat4.identity();
+        if(this.counter % 2 === 0){
+            let cut_size = current_pos - this.prev_z;
+            cut_block_transform = cut_block_transform.times(Mat4.translation(this.prev_x, this.next[1], current_pos + this.next[2])).times(Mat4.scale(this.next[0], this.scaling_factor, cut_size));
+        }
+        else {
+            let cut_size = current_pos - this.prev_x;
+            cut_block_transform = cut_block_transform.times(Mat4.translation(current_pos + this.next[0], this.next[1], this.prev_z)).times(Mat4.scale(cut_size, this.scaling_factor, this.next[2]));
+        }
+        return cut_block_transform;
+    }
+
+    //TODO: MAKE THIS SOMETHING REAL
+    draw_end_screen(context, program_state) {
+        this.shapes.text.set_string("Game Over",context.context);
+        let example_transform = Mat4.identity().times(Mat4.translation(-10,this.title_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0));
+        this.shapes.text.draw(context, program_state, example_transform, this.materials.text);
+        console.log("this.next[0] is " + this.next[0]);
+        console.log("this.next[2] is " + this.next[2]);
     }
 }
