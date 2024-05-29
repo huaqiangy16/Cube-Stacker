@@ -136,13 +136,15 @@ export class CubeStacker extends Base_Scene {
         //by two since it's just adding twice, so if we subtract once we get the same result
         this.next = vec3 (5,5-this.scaling_factor,5);
         this.counter = 0;
-        this.transforms = [];
+        this.place_transforms = [];
+        this.cut_transforms = [];
         this.light_pos = vec4 (1, 10, 5, 1);
         this.title_height = 22;
         this.counter_height = 18;
         this.prev_z = 0;
         this.prev_x = 0;
         this.white_color = hex_color("#ffffff");
+        this.blue_color = hex_color("#1a9ffa");
     }
 
     set_colors() {
@@ -186,12 +188,23 @@ export class CubeStacker extends Base_Scene {
 
         this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.plastic.override({color:this.white_color}));
         if(this.place){
-            
-            let place_block_transform = this.get_place_block_transform(current_pos);
+
+            this.next[1] = this.next[1]+this.scaling_factor*2;
+
+            //this order still matters, but I pulled out some of the state change to make it easier
             let cut_block_transform = this.get_cut_block_transform(current_pos);
+            let place_block_transform = this.get_place_block_transform(current_pos);
+
+            if (this.counter %2 === 0) {
+                this.prev_z = current_pos;
+            }
+            else {
+                this.prev_x = current_pos;
+            }
 
             //Set up everything for the placed block
-            this.transforms.push(place_block_transform);
+            this.place_transforms.push(place_block_transform);
+            this.cut_transforms.push(cut_block_transform);
             this.counter = this.counter + 1;
             this.camera_matrix = this.camera_matrix.times(Mat4.translation(0,-1*this.scaling_factor*2,0));
             this.light_pos[1] = this.light_pos[1]+this.scaling_factor*2;
@@ -201,13 +214,13 @@ export class CubeStacker extends Base_Scene {
             this.place = false;
         }
         for (let i = 0; i < this.counter; i++){
-            this.shapes.cube.draw(context, program_state, this.transforms[i], this.materials.plastic.override({color:this.white_color}));
+            this.shapes.cube.draw(context, program_state, this.place_transforms[i], this.materials.plastic.override({color:this.white_color}));
+            this.shapes.cube.draw(context, program_state, this.cut_transforms[i], this.materials.plastic.override({color:this.blue_color}));
         }
     }
 
     draw_base_game(context, program_state) {
         super.display(context, program_state);
-        const blue = hex_color("#1a9ffa");
         let model_transform = Mat4.identity();
         model_transform = model_transform.times(Mat4.scale(5, 5, 5));
         let t = this.t = program_state.animation_time / 1000
@@ -233,17 +246,13 @@ export class CubeStacker extends Base_Scene {
         if(this.counter % 2 === 0){
             cut_size = current_pos - this.prev_z;
             console.log("z cut size is " + cut_size);
-            this.next[1] = this.next[1]+this.scaling_factor*2;
-            this.prev_z = current_pos;
             this.next[2] = this.next[2] - Math.abs(cut_size);
             place_block_transform = place_block_transform.times(Mat4.translation(this.prev_x,this.next[1],current_pos)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
         else {
-            this.next[1] = this.next[1]+this.scaling_factor*2;
             cut_size = current_pos - this.prev_x;
             console.log("x difference is " + cut_size);
             console.log("this.next[0] is " + this.next[0]);
-            this.prev_x = current_pos;
             this.next[0] = this.next[0] - Math.abs(cut_size);
             place_block_transform = place_block_transform.times(Mat4.translation(current_pos,this.next[1],this.prev_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
@@ -253,7 +262,8 @@ export class CubeStacker extends Base_Scene {
     get_cut_block_transform(current_pos) {
         let cut_block_transform = Mat4.identity();
         if(this.counter % 2 === 0){
-            let cut_size = current_pos - this.prev_z;
+            let cut_size = Math.abs(current_pos - this.prev_z);
+            console.log("Z cut block scale is x: " + this.next[0] + ", z: " + cut_size);
             cut_block_transform = cut_block_transform.times(Mat4.translation(this.prev_x, this.next[1], current_pos + this.next[2])).times(Mat4.scale(this.next[0], this.scaling_factor, cut_size));
         }
         else {
@@ -268,7 +278,5 @@ export class CubeStacker extends Base_Scene {
         this.shapes.text.set_string("Game Over",context.context);
         let example_transform = Mat4.identity().times(Mat4.translation(-10,this.title_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0));
         this.shapes.text.draw(context, program_state, example_transform, this.materials.text);
-        console.log("this.next[0] is " + this.next[0]);
-        console.log("this.next[2] is " + this.next[2]);
     }
 }
