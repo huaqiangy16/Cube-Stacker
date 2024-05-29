@@ -245,14 +245,11 @@ export class CubeStacker extends Base_Scene {
         let cut_size = 0;
         if(this.counter % 2 === 0){
             cut_size = current_pos - this.prev_z;
-            console.log("z cut size is " + cut_size);
             this.next[2] = this.next[2] - Math.abs(cut_size);
             place_block_transform = place_block_transform.times(Mat4.translation(this.prev_x,this.next[1],current_pos)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
         else {
             cut_size = current_pos - this.prev_x;
-            console.log("x difference is " + cut_size);
-            console.log("this.next[0] is " + this.next[0]);
             this.next[0] = this.next[0] - Math.abs(cut_size);
             place_block_transform = place_block_transform.times(Mat4.translation(current_pos,this.next[1],this.prev_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
         }
@@ -262,13 +259,14 @@ export class CubeStacker extends Base_Scene {
     get_cut_block_transform(current_pos) {
         let cut_block_transform = Mat4.identity();
         if(this.counter % 2 === 0){
-            let cut_size = Math.abs(current_pos - this.prev_z);
-            console.log("Z cut block scale is x: " + this.next[0] + ", z: " + cut_size);
-            cut_block_transform = cut_block_transform.times(Mat4.translation(this.prev_x, this.next[1], current_pos + this.next[2])).times(Mat4.scale(this.next[0], this.scaling_factor, cut_size));
+            let cut_size = current_pos - this.prev_z;
+            let block_z_scale = cut_size > 0 ? current_pos + this.next[2] : current_pos - this.next[2];
+            cut_block_transform = cut_block_transform.times(Mat4.translation(this.prev_x, this.next[1], block_z_scale)).times(Mat4.scale(this.next[0], this.scaling_factor, cut_size));
         }
         else {
             let cut_size = current_pos - this.prev_x;
-            cut_block_transform = cut_block_transform.times(Mat4.translation(current_pos + this.next[0], this.next[1], this.prev_z)).times(Mat4.scale(cut_size, this.scaling_factor, this.next[2]));
+            let block_x_scale = cut_size > 0 ? current_pos + this.next[0] : current_pos - this.next[0];
+            cut_block_transform = cut_block_transform.times(Mat4.translation(block_x_scale, this.next[1], this.prev_z)).times(Mat4.scale(cut_size, this.scaling_factor, this.next[2]));
         }
         return cut_block_transform;
     }
