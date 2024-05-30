@@ -103,6 +103,86 @@ class Base_Scene extends Scene {
                 ambient: 1.0,  // <-- changed ambient to 1
                 texture: new Texture("assets/stars.png","NEAREST")
             }),
+            a: new Material(new Texture_W(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/1.png","NEAREST")
+            }),
+            b: new Material(new Texture_W(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/2.jpg","NEAREST")
+            }),
+            c: new Material(new Texture_W(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/3.jpg","NEAREST")
+            }),
+            d: new Material(new Texture_W(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/4.jpg","NEAREST")
+            }),
+            e: new Material(new Texture_W(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/5.jpg","NEAREST")
+            }),
+            f: new Material(new Texture_B(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/6.jpg","NEAREST")
+            }),
+            g: new Material(new Texture_B(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/7.jpg","NEAREST")
+            }),
+            h: new Material(new Texture_B(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/8.jpg","NEAREST")
+            }),
+            i: new Material(new Texture_B(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/9.jpg","NEAREST")
+            }),
+            j: new Material(new Texture_W(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/10.jpg","NEAREST")
+            }),
+            k: new Material(new Texture_W(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/11.jpg","NEAREST")
+            }),
+            l: new Material(new Texture_W(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/12.jpg","NEAREST")
+            }),
+            n: new Material(new Texture_B(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/13.jpg","NEAREST")
+            }),
+            m: new Material(new Texture_B(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/14.jpg","NEAREST")
+            }),
+            o: new Material(new Texture_B(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/15.jpg","NEAREST")
+            }),
+            p: new Material(new Texture_B(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/16.jpg","NEAREST")
+            }),
         };
         // The white material and basic shader are used for drawing the outline.
         this.white = new Material(new defs.Basic_Shader());
@@ -137,7 +217,7 @@ export class CubeStacker extends Base_Scene {
     constructor() {
         super();
         this.set_colors();
-        this.scaling_factor = 0.5;
+        this.scaling_factor = 0.8;
         //This is done to avoid having to have a separate condition for the 0th one
         //Rather than just adding the scaling factor in that one case, we can still multiply
         //by two since it's just adding twice, so if we subtract once we get the same result
@@ -145,6 +225,11 @@ export class CubeStacker extends Base_Scene {
         this.counter = 0;
         this.place_transforms = [];
         this.cut_transforms = [];
+        this.textures = [this.materials.stars_p, this.materials.a, this.materials.b, this.materials.c, this.materials.d, this.materials.e,
+            this.materials.f, this.materials.g,this.materials.h, this.materials.i, this.materials.j,
+            this.materials.k, this.materials.l,this.materials.m, this.materials.n, this.materials.o,
+            this.materials.p];
+        this.block_textures = [];
         this.light_pos = vec4 (1, 10, 5, 1);
         this.title_height = 22;
         this.counter_height = 18;
@@ -154,6 +239,10 @@ export class CubeStacker extends Base_Scene {
         this.blue_color = hex_color("#1a9ffa");
         this.replay = false;
         this.gameover = false;
+        this.min = 1
+        this.max = 16
+        this.range = this.max - this.min
+        this.current_number = Math.round(Math.random() * this.range) + this.min
     }
 
     set_colors() {
@@ -197,6 +286,8 @@ export class CubeStacker extends Base_Scene {
             this.counter = 0;
             this.place_transforms = [];
             this.cut_transforms = [];
+            this.block_textures = [];
+            this.current_number = Math.round(Math.random() * this.range) + this.min
             this.light_pos = vec4 (1, 10, 5, 1);
             this.title_height = 22;
             this.counter_height = 18;
@@ -219,8 +310,8 @@ export class CubeStacker extends Base_Scene {
 
         this.move_cut_blocks();
         this.counter_changed = false;
-
-        this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.stars_p);
+        console.log(this.current_number)
+        this.shapes.cube.draw(context, program_state, new_block_transform, this.textures[this.current_number]);
         if(this.place){
 
             this.counter_changed = true;
@@ -237,6 +328,8 @@ export class CubeStacker extends Base_Scene {
                 this.prev_x = current_pos;
             }
 
+            //determine the texture to use
+            this.block_textures.push(this.current_number)
             //Set up everything for the placed block
             this.place_transforms.push(place_block_transform);
             this.cut_transforms.push(cut_block_transform);
@@ -247,10 +340,11 @@ export class CubeStacker extends Base_Scene {
             this.counter_height = this.counter_height+this.scaling_factor*2;
             program_state.set_camera(this.camera_matrix);
             this.place = false;
+            this.current_number = Math.round(Math.random() * this.range) + this.min;
         }
         
         for (let i = 0; i < this.counter; i++){
-            this.shapes.cube.draw(context, program_state, this.place_transforms[i], this.materials.stars_p);
+            this.shapes.cube.draw(context, program_state, this.place_transforms[i], this.textures[this.block_textures[i]]);
         }
 
         for (let i = 0; i < this.cut_transforms.length; i++) {
@@ -282,7 +376,7 @@ export class CubeStacker extends Base_Scene {
         this.shapes.text.set_string(counter_text,context.context);
         this.shapes.text.draw(context, program_state, counter_transform, this.materials.text);
         this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:this.white_color}));
-        this.shapes.cube.draw(context, program_state, model_transform, this.materials.stars_p);
+        this.shapes.cube.draw(context, program_state, model_transform, this.textures[0]);
     }
 
     get_place_block_transform(current_pos) {
@@ -371,6 +465,36 @@ class Texture_W extends Textured_Phong {
                 //thinkness = 0.7-0.5 = 0.2
                 if(!(u > 0.02 && u < 0.98 && v > 0.02 && v < 0.98)){
                     tex_color = vec4(1, 1, 1, 1.0);
+                }
+                
+                if( tex_color.w < .01 ) discard;
+                                                                         // Compute an initial (ambient) color:
+                gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
+                                                                         // Compute the final color with contributions from lights:
+                gl_FragColor.xyz += phong_model_lights( normalize( N ), vertex_worldspace );
+        } `;
+    }
+}
+
+class Texture_B extends Textured_Phong {
+    // TODO:  Modify the shader below (right now it's just the same fragment shader as Textured_Phong) for requirement #6.
+    fragment_glsl_code() {
+        return this.shared_glsl_code() + `   
+            varying vec2 f_tex_coord;
+            uniform sampler2D texture;
+            uniform float animation_time;
+            
+            void main(){
+                // Sample the texture image in the correct place:
+                vec2 scaled_tex_coord = vec2(f_tex_coord.x, f_tex_coord.y);
+                vec4 tex_color = texture2D( texture, scaled_tex_coord);
+                                
+                float u = mod(scaled_tex_coord.x, 1.0);
+                float v = mod(scaled_tex_coord.y, 1.0);
+                //center = 0.5, upperbound = 0.5 + 0.7/2 = 0.85, lowerbound = 0.5 - 0.7/2 = 0.15
+                //thinkness = 0.7-0.5 = 0.2
+                if(!(u > 0.02 && u < 0.98 && v > 0.02 && v < 0.98)){
+                    tex_color = vec4(0, 0, 0, 1.0);
                 }
                 
                 if( tex_color.w < .01 ) discard;
