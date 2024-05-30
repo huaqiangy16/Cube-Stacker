@@ -148,7 +148,7 @@ class Base_Scene extends Scene {
                 ambient: 1.0,  // <-- changed ambient to 1
                 texture: new Texture("assets/9.jpg","NEAREST")
             }),
-            j: new Material(new Texture_W(), {
+            j: new Material(new Texture_B(), {
                 color: hex_color("#000000"),  // <-- changed base color to black
                 ambient: 1.0,  // <-- changed ambient to 1
                 texture: new Texture("assets/10.jpg","NEAREST")
