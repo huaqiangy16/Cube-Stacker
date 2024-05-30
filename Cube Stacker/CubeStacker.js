@@ -168,14 +168,15 @@ export class CubeStacker extends Base_Scene {
     }
 
     display(context, program_state) {
+        
         //game over is this.next[0] or this.next[2] <= 0
         if (this.next[0] <= 0 || this.next[2] <= 0) {
             this.draw_end_screen(context, program_state);
             return;
         }
+        
         //draw the base game
         this.draw_base_game(context, program_state);
-
         let current_pos = 10*Math.sin(2*this.t);
         let new_block_transform = Mat4.identity();
 
@@ -217,10 +218,20 @@ export class CubeStacker extends Base_Scene {
             program_state.set_camera(this.camera_matrix);
             this.place = false;
         }
+        
         for (let i = 0; i < this.counter; i++){
             this.shapes.cube.draw(context, program_state, this.place_transforms[i], this.materials.plastic.override({color:this.white_color}));
+        }
+
+        for (let i = 0; i < this.cut_transforms.length; i++) {
             this.shapes.cube.draw(context, program_state, this.cut_transforms[i], this.materials.plastic.override({color:this.blue_color}));
         }
+
+        let block_transform = Mat4.identity();
+        block_transform = block_transform.times(Mat4.scale(5, 5, 5));
+
+        this.shapes.cube.draw(context, program_state, block_transform, this.materials.plastic.override({color:this.white_color}));
+
     }
 
     draw_base_game(context, program_state) {
@@ -276,10 +287,27 @@ export class CubeStacker extends Base_Scene {
     }
 
     move_cut_blocks() {
-        for (let i = 0; i < this.counter; i++) {
-            this.cut_transforms[i] = i % 2 === 0 ?
-                this.cut_transforms[i].times(Mat4.translation(0, -0.2, 0.01)) :
-                this.cut_transforms[i].times(Mat4.translation(0.01, -0.2, 0));
+        if (this.counter_changed) {
+            console.log('--------------------------------------------------');
+        }
+        this.cut_transforms = this.cut_transforms.map(
+            (value, i) => i % 2 === 0 ? 
+            value.times(Mat4.translation(0, -0.2, 0.01)) :
+            value.times(Mat4.translation(0.01, -0.2, 0)));
+
+        this.cut_transforms = this.cut_transforms.filter((value) => value[1][3] > -10);
+        // this.cut_transforms = this.cut_transforms.filter((value) => {
+        //     const y_pos = value[1][3];
+
+        // })
+
+        for (let i = 0; i < this.cut_transforms.length; i++) {
+
+            let y_pos = this.cut_transforms[i][1][3];
+            if (this.counter_changed) {
+                console.log(this.cut_transforms[i].to_string());
+                console.log(y_pos);
+            }
         }
     }
 
