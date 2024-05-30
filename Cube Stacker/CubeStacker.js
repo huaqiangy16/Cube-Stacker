@@ -145,6 +145,8 @@ export class CubeStacker extends Base_Scene {
         this.prev_x = 0;
         this.white_color = hex_color("#ffffff");
         this.blue_color = hex_color("#1a9ffa");
+        this.replay = false;
+        this.gameover = false;
     }
 
     set_colors() {
@@ -162,8 +164,11 @@ export class CubeStacker extends Base_Scene {
     }
 
     make_control_panel() {
-        this.key_triggered_button("Place", ["p"], () => {
+        this.key_triggered_button("Place", ["e"], () => {
             this.place = true;
+        });
+        this.key_triggered_button("Replay", ["q"], () => {
+                this.replay = true;
         });
     }
 
@@ -171,10 +176,27 @@ export class CubeStacker extends Base_Scene {
         
         //game over is this.next[0] or this.next[2] <= 0
         if (this.next[0] <= 0 || this.next[2] <= 0) {
+            this.gameover = true;
+        }
+
+        if(this.gameover === true && this.replay === false){
             this.draw_end_screen(context, program_state);
             return;
         }
-        
+        else if(this.replay === true){
+            this.replay = false;
+            this.gameover = false;
+            this.next = vec3 (5,5-this.scaling_factor,5);
+            this.counter = 0;
+            this.place_transforms = [];
+            this.cut_transforms = [];
+            this.light_pos = vec4 (1, 10, 5, 1);
+            this.title_height = 22;
+            this.counter_height = 18;
+            this.prev_z = 0;
+            this.prev_x = 0;
+            this.camera_matrix = Mat4.translation(0, -8, -40).times(Mat4.rotation(0.5,1,0,0)).times(Mat4.rotation(0.8,0,1,0));
+        }
         //draw the base game
         this.draw_base_game(context, program_state);
         let current_pos = 10*Math.sin(2*this.t);
