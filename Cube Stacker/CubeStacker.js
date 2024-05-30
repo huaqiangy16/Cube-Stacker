@@ -194,7 +194,7 @@ class Base_Scene extends Scene {
 
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
         if (!context.scratchpad.controls) {
-            this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
+           // this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
             program_state.set_camera(this.camera_matrix);
         }
@@ -260,10 +260,16 @@ export class CubeStacker extends Base_Scene {
     }
 
     make_control_panel() {
-        this.key_triggered_button("Place", ["e"], () => {
+        this.control_panel.innerHTML += "Instructions:";
+        this.new_line();
+        this.control_panel.innerHTML += "1. Press 'p' to place a block.";
+        this.new_line();
+        this.control_panel.innerHTML += "2. Press 'r' to restart the game.";
+        this.new_line();
+        this.key_triggered_button("Place", ["p"], () => {
             this.place = true;
         });
-        this.key_triggered_button("Replay", ["q"], () => {
+        this.key_triggered_button("Replay", ["r"], () => {
                 this.replay = true;
         });
     }
@@ -310,7 +316,6 @@ export class CubeStacker extends Base_Scene {
 
         this.move_cut_blocks();
         this.counter_changed = false;
-        console.log(this.current_number)
         this.shapes.cube.draw(context, program_state, new_block_transform, this.textures[this.current_number]);
         if(this.place){
 
