@@ -5,62 +5,64 @@ const {
     Vector, Vector3, vec, vec3, vec4, color, hex_color, Matrix, Mat4, Light, Shape, Material, Scene, Texture
 } = tiny;
 
-class Cube extends Shape {
-    constructor() {
-        super("position", "normal",);
-        // Loop 3 times (for each axis), and inside loop twice (for opposing cube sides):
-        this.arrays.position = Vector3.cast(
-            [-1, -1, -1], [1, -1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [1, 1, 1], [-1, 1, 1],
-            [-1, -1, -1], [-1, -1, 1], [-1, 1, -1], [-1, 1, 1], [1, -1, 1], [1, -1, -1], [1, 1, 1], [1, 1, -1],
-            [-1, -1, 1], [1, -1, 1], [-1, 1, 1], [1, 1, 1], [1, -1, -1], [-1, -1, -1], [1, 1, -1], [-1, 1, -1]);
-        this.arrays.normal = Vector3.cast(
-            [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0],
-            [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0],
-            [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, -1], [0, 0, -1], [0, 0, -1], [0, 0, -1]);
-        // Arrange the vertices into a square shape in texture space too:
-        this.indices.push(0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6, 8, 9, 10, 9, 11, 10, 12, 13,
-            14, 13, 15, 14, 16, 17, 18, 17, 19, 18, 20, 21, 22, 21, 23, 22);
-    }
-}
+const {Cube, Axis_Arrows, Textured_Phong} = defs
 
-class Cube_Outline extends Shape {
-    constructor() {
-        super("position", "color");
-        //  TODO (Requirement 5).
-        // When a set of lines is used in graphics, you should think of the list entries as
-        // broken down into pairs; each pair of vertices will be drawn as a line segment.
-        // Note: since the outline is rendered with Basic_shader, you need to redefine the position and color of each vertex
-        this.arrays.position = Vector3.cast(
-            [-1, -1, 1],[-1, 1, 1], [-1,1,1],[1,1,1], [1,1,1],[1,-1,1], [1,-1,1],[-1,-1,1], //front face
-            [-1,1,1],[-1,1,-1], [-1,1,-1],[-1,-1,-1], [-1,-1,-1],[-1,-1,1], //left face
-            [1,1,1],[1,1,-1], [1,1,-1],[-1,1,-1],//top face
-            [1,1,-1],[1,-1,-1], [1,-1,-1],[1,-1,1], //right face
-            [-1,-1,-1],[1,-1,-1] //back and bot face
-        );
-        this.arrays.color = [
-            vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),
-            vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),
-            vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),
-            vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),
-            vec4(255,255,255,1),vec4(255,255,255,1)
-        ];
-        this.indices = false
-    }
-}
-
-class Cube_Single_Strip extends Shape {
-    constructor() {
-        super("position", "normal");
-        // TODO (Requirement 6)
-        this.arrays.position = Vector3.cast(
-            [-1,1,1],[1,1,1],[-1,-1,1],[1,-1,1],[-1,1,-1],[1,1,-1],[-1,-1,-1],[1,-1,-1]
-        );
-        this.arrays.normal = Vector3.cast(
-            [-1,1,1],[1,1,1],[-1,-1,1],[1,-1,1],[-1,1,-1],[1,1,-1],[-1,-1,-1],[1,-1,-1]
-        );
-        this.indices.push(0,2,1,3,5,7,4,6,0,2,3,7,5,4,1,0);
-    }
-}
+// class Cube extends Shape {
+//     constructor() {
+//         super("position", "normal",);
+//         // Loop 3 times (for each axis), and inside loop twice (for opposing cube sides):
+//         this.arrays.position = Vector3.cast(
+//             [-1, -1, -1], [1, -1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [1, 1, 1], [-1, 1, 1],
+//             [-1, -1, -1], [-1, -1, 1], [-1, 1, -1], [-1, 1, 1], [1, -1, 1], [1, -1, -1], [1, 1, 1], [1, 1, -1],
+//             [-1, -1, 1], [1, -1, 1], [-1, 1, 1], [1, 1, 1], [1, -1, -1], [-1, -1, -1], [1, 1, -1], [-1, 1, -1]);
+//         this.arrays.normal = Vector3.cast(
+//             [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0],
+//             [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0],
+//             [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, -1], [0, 0, -1], [0, 0, -1], [0, 0, -1]);
+//         // Arrange the vertices into a square shape in texture space too:
+//         this.indices.push(0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6, 8, 9, 10, 9, 11, 10, 12, 13,
+//             14, 13, 15, 14, 16, 17, 18, 17, 19, 18, 20, 21, 22, 21, 23, 22);
+//     }
+// }
+//
+// class Cube_Outline extends Shape {
+//     constructor() {
+//         super("position", "color");
+//         //  TODO (Requirement 5).
+//         // When a set of lines is used in graphics, you should think of the list entries as
+//         // broken down into pairs; each pair of vertices will be drawn as a line segment.
+//         // Note: since the outline is rendered with Basic_shader, you need to redefine the position and color of each vertex
+//         this.arrays.position = Vector3.cast(
+//             [-1, -1, 1],[-1, 1, 1], [-1,1,1],[1,1,1], [1,1,1],[1,-1,1], [1,-1,1],[-1,-1,1], //front face
+//             [-1,1,1],[-1,1,-1], [-1,1,-1],[-1,-1,-1], [-1,-1,-1],[-1,-1,1], //left face
+//             [1,1,1],[1,1,-1], [1,1,-1],[-1,1,-1],//top face
+//             [1,1,-1],[1,-1,-1], [1,-1,-1],[1,-1,1], //right face
+//             [-1,-1,-1],[1,-1,-1] //back and bot face
+//         );
+//         this.arrays.color = [
+//             vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),
+//             vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),
+//             vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),
+//             vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),vec4(255,255,255,1),
+//             vec4(255,255,255,1),vec4(255,255,255,1)
+//         ];
+//         this.indices = false
+//     }
+// }
+//
+// class Cube_Single_Strip extends Shape {
+//     constructor() {
+//         super("position", "normal");
+//         // TODO (Requirement 6)
+//         this.arrays.position = Vector3.cast(
+//             [-1,1,1],[1,1,1],[-1,-1,1],[1,-1,1],[-1,1,-1],[1,1,-1],[-1,-1,-1],[1,-1,-1]
+//         );
+//         this.arrays.normal = Vector3.cast(
+//             [-1,1,1],[1,1,1],[-1,-1,1],[1,-1,1],[-1,1,-1],[1,1,-1],[-1,-1,-1],[1,-1,-1]
+//         );
+//         this.indices.push(0,2,1,3,5,7,4,6,0,2,3,7,5,4,1,0);
+//     }
+// }
 
 
 class Base_Scene extends Scene {
@@ -79,8 +81,8 @@ class Base_Scene extends Scene {
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
         this.shapes = {
             'cube': new Cube(),
-            'outline': new Cube_Outline(),
-            'strip': new Cube_Single_Strip(),
+            // 'outline': new Cube_Outline(),
+            // 'strip': new Cube_Single_Strip(),
             ball: new defs.Subdivision_Sphere(4),
             text: new Text_Line(35)
         };
@@ -95,6 +97,11 @@ class Base_Scene extends Scene {
             text: new Material(new defs.Textured_Phong(1), {
                 ambient: 1, diffusivity: 0, specularity: 0,
                 texture: new Texture("assets/text.png")
+            }),
+            stars_p: new Material(new Texture_W(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/stars.png","NEAREST")
             }),
         };
         // The white material and basic shader are used for drawing the outline.
@@ -196,6 +203,7 @@ export class CubeStacker extends Base_Scene {
             this.prev_z = 0;
             this.prev_x = 0;
             this.camera_matrix = Mat4.translation(0, -8, -40).times(Mat4.rotation(0.5,1,0,0)).times(Mat4.rotation(0.8,0,1,0));
+            program_state.set_camera(this.camera_matrix);
         }
         //draw the base game
         this.draw_base_game(context, program_state);
@@ -212,7 +220,7 @@ export class CubeStacker extends Base_Scene {
         this.move_cut_blocks();
         this.counter_changed = false;
 
-        this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.plastic.override({color:this.white_color}));
+        this.shapes.cube.draw(context, program_state, new_block_transform, this.materials.stars_p);
         if(this.place){
 
             this.counter_changed = true;
@@ -242,7 +250,7 @@ export class CubeStacker extends Base_Scene {
         }
         
         for (let i = 0; i < this.counter; i++){
-            this.shapes.cube.draw(context, program_state, this.place_transforms[i], this.materials.plastic.override({color:this.white_color}));
+            this.shapes.cube.draw(context, program_state, this.place_transforms[i], this.materials.stars_p);
         }
 
         for (let i = 0; i < this.cut_transforms.length; i++) {
@@ -274,7 +282,7 @@ export class CubeStacker extends Base_Scene {
         this.shapes.text.set_string(counter_text,context.context);
         this.shapes.text.draw(context, program_state, counter_transform, this.materials.text);
         this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:this.white_color}));
-        this.shapes.cube.draw(context, program_state, model_transform, this.materials.test);
+        this.shapes.cube.draw(context, program_state, model_transform, this.materials.stars_p);
     }
 
     get_place_block_transform(current_pos) {
@@ -341,5 +349,35 @@ export class CubeStacker extends Base_Scene {
         this.shapes.text.set_string("Press q to restart",context.context);
         let example_transform2 = Mat4.identity().times(Mat4.translation(-19,this.title_height-8, 0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0)).times(Mat4.rotation(-0.5,1,0,0));
         this.shapes.text.draw(context, program_state, example_transform2, this.materials.text);
+    }
+}
+
+class Texture_W extends Textured_Phong {
+    // TODO:  Modify the shader below (right now it's just the same fragment shader as Textured_Phong) for requirement #6.
+    fragment_glsl_code() {
+        return this.shared_glsl_code() + `   
+            varying vec2 f_tex_coord;
+            uniform sampler2D texture;
+            uniform float animation_time;
+            
+            void main(){
+                // Sample the texture image in the correct place:
+                vec2 scaled_tex_coord = vec2(f_tex_coord.x, f_tex_coord.y);
+                vec4 tex_color = texture2D( texture, scaled_tex_coord);
+                                
+                float u = mod(scaled_tex_coord.x, 1.0);
+                float v = mod(scaled_tex_coord.y, 1.0);
+                //center = 0.5, upperbound = 0.5 + 0.7/2 = 0.85, lowerbound = 0.5 - 0.7/2 = 0.15
+                //thinkness = 0.7-0.5 = 0.2
+                if(!(u > 0.02 && u < 0.98 && v > 0.02 && v < 0.98)){
+                    tex_color = vec4(1, 1, 1, 1.0);
+                }
+                
+                if( tex_color.w < .01 ) discard;
+                                                                         // Compute an initial (ambient) color:
+                gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
+                                                                         // Compute the final color with contributions from lights:
+                gl_FragColor.xyz += phong_model_lights( normalize( N ), vertex_worldspace );
+        } `;
     }
 }
