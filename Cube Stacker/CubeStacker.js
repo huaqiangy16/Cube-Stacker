@@ -204,7 +204,7 @@ class Base_Scene extends Scene {
 
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
         if (!context.scratchpad.controls) {
-           this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
+           //this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
             program_state.set_camera(this.camera_matrix);
         }
