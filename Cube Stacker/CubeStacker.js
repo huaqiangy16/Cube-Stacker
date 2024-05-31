@@ -445,7 +445,7 @@ export class CubeStacker extends Base_Scene {
         this.shapes.text.set_string("Game Over",context.context);
         let example_transform = Mat4.identity().times(Mat4.translation(-10,this.title_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0)).times(Mat4.rotation(-0.5,1,0,0));
         this.shapes.text.draw(context, program_state, example_transform, this.materials.text);
-        this.shapes.text.set_string("Press q to restart",context.context);
+        this.shapes.text.set_string("Press r to restart",context.context);
         let example_transform2 = Mat4.identity().times(Mat4.translation(-19,this.title_height-8, 0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0)).times(Mat4.rotation(-0.5,1,0,0));
         this.shapes.text.draw(context, program_state, example_transform2, this.materials.text);
     }
