@@ -387,7 +387,7 @@ export class CubeStacker extends Base_Scene {
             this.light_pos[0] = 1
             this.light_pos[3] = 5
         }
-        program_state.lights = [new Light(this.light_pos, this.white_color, 10000)];
+        program_state.lights = [new Light(this.light_pos, this.white_color, 100)];
         let example_text = "Cube Stacker"
         let example_transform = Mat4.identity().times(Mat4.translation(-10,this.title_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0));
         this.shapes.text.set_string(example_text,context.context);
