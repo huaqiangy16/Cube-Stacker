@@ -93,7 +93,7 @@ class Base_Scene extends Scene {
             plastic: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
             test: new Material(new defs.Phong_Shader(),
-                {ambient: 0.1, diffusivity: 1, specularity: 1, color: hex_color("#1a9ffa")}),
+                {ambient: 1, diffusivity: 1, specularity: 1, color: hex_color("#1a9ffa")}),
             text: new Material(new defs.Textured_Phong(1), {
                 ambient: 1, diffusivity: 0, specularity: 0,
                 texture: new Texture("assets/text.png")
@@ -183,6 +183,16 @@ class Base_Scene extends Scene {
                 ambient: 1.0,  // <-- changed ambient to 1
                 texture: new Texture("assets/16.jpg","NEAREST")
             }),
+            ground: new Material(new defs.Textured_Phong(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/ground.jpg","NEAREST")
+            }),
+            street: new Material(new defs.Textured_Phong(), {
+                color: hex_color("#000000"),  // <-- changed base color to black
+                ambient: 1.0,  // <-- changed ambient to 1
+                texture: new Texture("assets/street.jpg","NEAREST")
+            }),
         };
         // The white material and basic shader are used for drawing the outline.
         this.white = new Material(new defs.Basic_Shader());
@@ -194,7 +204,7 @@ class Base_Scene extends Scene {
 
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
         if (!context.scratchpad.controls) {
-           // this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
+           this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
             program_state.set_camera(this.camera_matrix);
         }
@@ -294,7 +304,7 @@ export class CubeStacker extends Base_Scene {
             this.cut_transforms = [];
             this.block_textures = [];
             this.current_number = Math.round(Math.random() * this.range) + this.min
-            this.light_pos = vec4 (1, 10, 5, 1);
+            this.light_pos = vec4 (1, 10, 1, 1);
             this.title_height = 22;
             this.counter_height = 18;
             this.prev_z = 0;
@@ -368,20 +378,33 @@ export class CubeStacker extends Base_Scene {
         let model_transform = Mat4.identity();
         model_transform = model_transform.times(Mat4.scale(5, 5, 5));
         let t = this.t = program_state.animation_time / 1000
-        let ball_transform = Mat4.identity().times(Mat4.rotation(t,0,1,0)).times(Mat4.translation(20,0,0)).times(Mat4.scale(5,5,5));
-        this.light_pos[0] = 10*Math.sin(2*this.t);
+        // let ball_transform = Mat4.identity().times(Mat4.rotation(t,0,1,0)).times(Mat4.translation(20,0,0)).times(Mat4.scale(5,5,5));
+        if (this.counter %2 === 0) {
+            this.light_pos[0] = 1
+            this.light_pos[3] = 5
+        }
+        else {
+            this.light_pos[0] = 1
+            this.light_pos[3] = 5
+        }
         program_state.lights = [new Light(this.light_pos, this.white_color, 10000)];
         let example_text = "Cube Stacker"
         let example_transform = Mat4.identity().times(Mat4.translation(-10,this.title_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0));
         this.shapes.text.set_string(example_text,context.context);
         this.shapes.text.draw(context, program_state, example_transform, this.materials.text);
-        this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:this.white_color}));
+        // this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:this.white_color}));
         let counter_text = this.counter.toString()
         let counter_transform = Mat4.identity().times(Mat4.translation(0,this.counter_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0));
         this.shapes.text.set_string(counter_text,context.context);
         this.shapes.text.draw(context, program_state, counter_transform, this.materials.text);
-        this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:this.white_color}));
+        // this.shapes.ball.draw(context,program_state, ball_transform, this.materials.test.override({color:this.white_color}));
         this.shapes.cube.draw(context, program_state, model_transform, this.textures[0]);
+        let model_trans_floor = Mat4.translation(0,-5,0).times(Mat4.scale(40, 0.01, 40));
+        this.shapes.cube.draw(context, program_state, model_trans_floor, this.materials.ground);
+        let model_trans_wall1 = Mat4.translation(0,35,-35).times(Mat4.scale(40, 50, 1));
+        this.shapes.cube.draw(context, program_state, model_trans_wall1, this.materials.street);
+        let model_trans_wall2 = Mat4.translation(35,35,0).times(Mat4.scale(1, 50, 40));
+        this.shapes.cube.draw(context, program_state, model_trans_wall2, this.materials.street);
     }
 
     get_place_block_transform(current_pos) {
@@ -443,10 +466,10 @@ export class CubeStacker extends Base_Scene {
     //TODO: MAKE THIS SOMETHING REAL
     draw_end_screen(context, program_state) {
         this.shapes.text.set_string("Game Over",context.context);
-        let example_transform = Mat4.identity().times(Mat4.translation(-10,this.title_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0)).times(Mat4.rotation(-0.5,1,0,0));
+        let example_transform = Mat4.identity().times(Mat4.translation(-8,this.title_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0)).times(Mat4.rotation(-0.5,1,0,0));
         this.shapes.text.draw(context, program_state, example_transform, this.materials.text);
         this.shapes.text.set_string("Press r to restart",context.context);
-        let example_transform2 = Mat4.identity().times(Mat4.translation(-19,this.title_height-8, 0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0)).times(Mat4.rotation(-0.5,1,0,0));
+        let example_transform2 = Mat4.identity().times(Mat4.translation(-18,this.title_height-6, 0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0)).times(Mat4.rotation(-0.5,1,0,0));
         this.shapes.text.draw(context, program_state, example_transform2, this.materials.text);
     }
 }
