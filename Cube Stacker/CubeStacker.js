@@ -76,6 +76,7 @@ class Base_Scene extends Scene {
         this.hover = this.swarm = false;
         this.ol = false; //controls display outline for the cubes
         this.place = false;
+        this.c = 0;
         this.colors = [hex_color("#1a9ffa"), hex_color("#1a9ffa"), hex_color("#1a9ffa"), hex_color("#1a9ffa"),
                         hex_color("#1a9ffa"),hex_color("#1a9ffa"),hex_color("#1a9ffa"),hex_color("#1a9ffa")]; //colors for each cube
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
@@ -86,7 +87,8 @@ class Base_Scene extends Scene {
             ball: new defs.Subdivision_Sphere(4),
             text: new Text_Line(35)
         };
-        this.camera_matrix = Mat4.translation(0, -8, -40).times(Mat4.rotation(0.5,1,0,0)).times(Mat4.rotation(0.8,0,1,0));
+        this.initial_camera_location = Mat4.translation(0, -8, -40).times(Mat4.rotation(0.5,1,0,0)).times(Mat4.rotation(0.8,0,1,0));
+        this.camera_matrix = this.initial_camera_location;
 
         // *** Materials
         this.materials = {
@@ -252,6 +254,7 @@ export class CubeStacker extends Base_Scene {
         this.min = 1
         this.max = 16
         this.range = this.max - this.min
+        this.placed = false;
         this.current_number = Math.round(Math.random() * this.range) + this.min
     }
 
@@ -309,8 +312,7 @@ export class CubeStacker extends Base_Scene {
             this.counter_height = 18;
             this.prev_z = 0;
             this.prev_x = 0;
-            this.camera_matrix = Mat4.translation(0, -8, -40).times(Mat4.rotation(0.5,1,0,0)).times(Mat4.rotation(0.8,0,1,0));
-            program_state.set_camera(this.camera_matrix);
+            this.camera_matrix = this.initial_camera_location;
         }
         //draw the base game
         this.draw_base_game(context, program_state);
@@ -349,15 +351,17 @@ export class CubeStacker extends Base_Scene {
             this.place_transforms.push(place_block_transform);
             this.cut_transforms.push(cut_block_transform);
             this.counter = this.counter + 1;
-            this.camera_matrix = this.camera_matrix.times(Mat4.translation(0,-1*this.scaling_factor*2,0));
+            let desired = this.camera_matrix.times(Mat4.translation(0,-1*this.scaling_factor*2,0));
+            this.camera_matrix = desired;
+            desired = desired.map((x,i) => Vector.from(program_state.camera_transform[i]).mix(x, 0.1));
+            program_state.set_camera(desired);
             this.light_pos[1] = this.light_pos[1]+this.scaling_factor*2;
             this.title_height = this.title_height+this.scaling_factor*2;
             this.counter_height = this.counter_height+this.scaling_factor*2;
-            program_state.set_camera(this.camera_matrix);
             this.place = false;
             this.current_number = Math.round(Math.random() * this.range) + this.min;
         }
-        
+
         for (let i = 0; i < this.counter; i++){
             this.shapes.cube.draw(context, program_state, this.place_transforms[i], this.textures[this.block_textures[i]]);
         }
