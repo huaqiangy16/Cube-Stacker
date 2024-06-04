@@ -352,6 +352,7 @@ export class CubeStacker extends Base_Scene {
             this.counter_height = 18;
             this.prev_z = 0;
             this.prev_x = 0;
+            this.desired = this.initial_camera_location;
             this.camera_matrix = this.initial_camera_location;
         }
         //draw the base game
@@ -524,7 +525,7 @@ export class CubeStacker extends Base_Scene {
     //TODO: MAKE THIS SOMETHING REAL
     draw_end_screen(context, program_state) {
         this.shapes.text.set_string("Game Over",context.context);
-        let example_transform = Mat4.identity().times(Mat4.translation(-8,this.title_height,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0)).times(Mat4.rotation(-0.5,1,0,0));
+        let example_transform = Mat4.identity().times(Mat4.translation(-8,this.title_height-2,0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0)).times(Mat4.rotation(-0.5,1,0,0));
         this.shapes.text.draw(context, program_state, example_transform, this.materials.text);
         this.shapes.text.set_string("Press r to restart",context.context);
         let example_transform2 = Mat4.identity().times(Mat4.translation(-18,this.title_height-6, 0)).times(Mat4.scale(1,1,1)).times(Mat4.rotation(-0.8,0,1,0)).times(Mat4.rotation(-0.5,1,0,0));
