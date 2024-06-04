@@ -122,6 +122,7 @@ class Base_Scene extends Scene {
         };
         this.initial_camera_location = Mat4.translation(0, -8, -40).times(Mat4.rotation(0.5,1,0,0)).times(Mat4.rotation(0.8,0,1,0));
         this.camera_matrix = this.initial_camera_location;
+        this.desired = this.initial_camera_location;
 
         // *** Materials
         this.materials = {
@@ -238,13 +239,18 @@ class Base_Scene extends Scene {
         // some initial setup.
 
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
-        if (!context.scratchpad.controls) {
-           //this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
-            // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(this.camera_matrix);
-        }
+        // if (!context.scratchpad.controls) {
+        //    //this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
+        //     // Define the global camera and projection matrices, which are stored in program_state.
+        //     this.camera_matrix = this.camera_matrix.map((x,i) => Vector.from(program_state.camera_transform[i]).mix(x, 0.001));
+        //     program_state.set_camera(this.camera_matrix);
+        //     //this.camera_matrix = this.camera_matrix.map((x,i) => Vector.from(program_state.camera_transform[i]).mix(x, 0.001));
+        // }
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
+        this.camera_matrix = this.camera_matrix.map((x,i) => Vector.from(this.desired[i]).mix(x, 0.9));
+        //this.camera_matrix = this.camera_matrix.times(0.9).plus(this.desired.times(0.1));
+        program_state.set_camera(this.camera_matrix);
 
         // *** Lights: *** Values of vector or point lights.
         // const light_position = vec4(0, 5, 5, 1);
@@ -385,10 +391,9 @@ export class CubeStacker extends Base_Scene {
             this.place_transforms.push(place_block_transform);
             this.cut_transforms.push(cut_block_transform);
             this.counter = this.counter + 1;
-            let desired = this.camera_matrix.times(Mat4.translation(0,-1*this.scaling_factor*2,0));
-            this.camera_matrix = desired;
-            desired = desired.map((x,i) => Vector.from(program_state.camera_transform[i]).mix(x, 0.1));
-            program_state.set_camera(desired);
+            this.desired = this.camera_matrix.times(Mat4.translation(0,-1*this.scaling_factor*2,0));
+            //this.camera_matrix = this.desired;
+            //program_state.set_camera(desired);
             this.light_pos[1] = this.light_pos[1]+this.scaling_factor*2;
             this.title_height = this.title_height+this.scaling_factor*2;
             this.counter_height = this.counter_height+this.scaling_factor*2;
