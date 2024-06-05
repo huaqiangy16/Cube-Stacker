@@ -289,6 +289,7 @@ export class CubeStacker extends Base_Scene {
         this.white_color = hex_color("#ffffff");
         this.blue_color = hex_color("#1a9ffa");
         this.bounding_boxes = [];
+        this.bounding_boxes.push(new Bounding_Box(-5, 5, -5, 5));
         this.replay = false;
         this.gameover = false;
         this.min = 1
@@ -421,7 +422,6 @@ export class CubeStacker extends Base_Scene {
         super.display(context, program_state);
         let model_transform = Mat4.identity();
         model_transform = model_transform.times(Mat4.scale(5, 5, 5));
-        this.bounding_boxes.push(new Bounding_Box(-5, 5, -5, 5));
         let t = this.t = program_state.animation_time / 1000
         // let ball_transform = Mat4.identity().times(Mat4.rotation(t,0,1,0)).times(Mat4.translation(20,0,0)).times(Mat4.scale(5,5,5));
         if (this.counter %2 === 0) {
@@ -455,6 +455,7 @@ export class CubeStacker extends Base_Scene {
     get_place_block_transform(current_pos) {
         let place_block_transform = Mat4.identity();
         let cut_size = 0;
+        let size = 0;
         if(this.counter % 2 === 0){
             cut_size = current_pos - this.prev_z;
             this.next[2] = this.next[2] - Math.abs(cut_size);
@@ -463,22 +464,35 @@ export class CubeStacker extends Base_Scene {
             let x_max = this.bounding_boxes[this.bounding_boxes.length - 1].maxX;
             let z_min = this.bounding_boxes[this.bounding_boxes.length - 1].minZ;
             let z_max = this.bounding_boxes[this.bounding_boxes.length - 1].maxZ;
+            console.log("Cut size is " + cut_size);
             if (cut_size > 0) {
-
+                z_max = z_max - cut_size;
             }
             else {
-                
+                z_min = z_min - cut_size;
             }
-            console.log("Possible x_min is " + x_min);
-            console.log("Possible x_max is " + x_max);
+            size = this.bounding_boxes.push(new Bounding_Box(x_min, x_max, z_min, z_max));
+            console.log ("Adding bounding box with x_min " + x_min + ", x_max " + x_max + ", z_min " + z_min + ", z_max " + z_max);
         }
         else {
             cut_size = current_pos - this.prev_x;
             this.next[0] = this.next[0] - Math.abs(cut_size);
-            let x_min = (this.next[0] * -1) + this.prev_x;
-            console.log("Possible x_min is " + x_min);
             place_block_transform = place_block_transform.times(Mat4.translation(current_pos,this.next[1],this.prev_z)).times(Mat4.scale(this.next[0],this.scaling_factor,this.next[2]));
+            let x_min = this.bounding_boxes[this.bounding_boxes.length - 1].minX;
+            let x_max = this.bounding_boxes[this.bounding_boxes.length - 1].maxX;
+            let z_min = this.bounding_boxes[this.bounding_boxes.length - 1].minZ;
+            let z_max = this.bounding_boxes[this.bounding_boxes.length - 1].maxZ;
+            console.log("Cut size is " + cut_size);
+            if (cut_size > 0) {
+                x_max = x_max - cut_size;
+            }
+            else {
+                x_min = x_min - cut_size;
+            }
+            size = this.bounding_boxes.push(new Bounding_Box(x_min, x_max, z_min, z_max));
+            console.log ("Adding bounding box with x_min " + x_min + ", x_max " + x_max + ", z_min " + z_min + ", z_max " + z_max);
         }
+        console.log("Bounding box length is now " + this.bounding_boxes.length, " though our push says it is " + size);
         return place_block_transform;
     }
 
@@ -506,7 +520,7 @@ export class CubeStacker extends Base_Scene {
             value.times(Mat4.translation(0, -0.2, 0.01)) :
             value.times(Mat4.translation(0.01, -0.2, 0)));
 
-        this.cut_transforms = this.cut_transforms.filter((value) => value[1][3] > -10);
+        this.cut_transforms = this.cut_transforms.filter((value) => value[1][3] > -6);
         // this.cut_transforms = this.cut_transforms.filter((value) => {
         //     const y_pos = value[1][3];
 
