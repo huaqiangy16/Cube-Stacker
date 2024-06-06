@@ -370,11 +370,13 @@ export class CubeStacker extends Base_Scene {
             this.placed_blocks.push(new Block(Mat4.identity().times(Mat4.scale(5,5,5)), new Bounding_Box(-5, 5, -5, 5)));
             this.cut_blocks = [];
             this.current_number = Math.round(Math.random() * this.range) + this.min
+            this.prev_number = 0
             this.light_pos = vec4 (1, 10, 1, 1);
             this.title_height = 22;
             this.counter_height = 18;
             this.prev_z = 0;
             this.prev_x = 0;
+            this.prev_number = 0;
             this.desired = this.initial_camera_location;
             this.camera_matrix = this.initial_camera_location;
         }
@@ -434,13 +436,14 @@ export class CubeStacker extends Base_Scene {
             this.title_height = this.title_height+this.scaling_factor*2;
             this.counter_height = this.counter_height+this.scaling_factor*2;
             this.place = false;
+            this.prev_number = this.current_number;
             this.current_number = Math.round(Math.random() * this.range) + this.min;
         }
         for (let i = 1; i <= this.counter; i++){
             this.shapes.cube.draw(context, program_state, this.placed_blocks[i].transform, this.textures[this.block_textures[i-1]]);
         }
 
-        this.cut_blocks.forEach(block => this.shapes.cube.draw(context, program_state, block.transform, this.materials.plastic.override({color:this.blue_color})));
+        this.cut_blocks.forEach(block => this.shapes.cube.draw(context, program_state, block.transform, this.textures[this.prev_number]));
 
         let block_transform = Mat4.identity();
         block_transform = block_transform.times(Mat4.scale(5, 5, 5));
