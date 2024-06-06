@@ -92,12 +92,12 @@ class Bounding_Box {
         console.log("Comparing " + this.x_min + " < " + box.maxX);
         console.log("Comparing " + this.x_max + " > " + box.minX);
         console.log("Comparing " + this.z_min + " < " + box.maxZ);
-        console.log("Comparing " + this.x_max + " > " + box.minZ);
+        console.log("Comparing " + this.z_max + " > " + box.minZ);
         return (
-            this.x_min <= box.maxX &&
-            this.x_max >= box.minX &&
-            this.z_min <= box.maxZ &&
-            this.z_max >= box.minZ
+            this.x_min < box.maxX &&
+            this.x_max > box.minX &&
+            this.z_min < box.maxZ &&
+            this.z_max > box.minZ
           );
     }
 }
@@ -438,7 +438,6 @@ export class CubeStacker extends Base_Scene {
             this.counter_height = this.counter_height+this.scaling_factor*2;
             this.place = false;
             this.current_number = Math.round(Math.random() * this.range) + this.min;
-
         }
         for (let i = 1; i <= this.counter; i++){
             this.shapes.cube.draw(context, program_state, this.placed_blocks[i].transform, this.textures[this.block_textures[i-1]]);
@@ -530,31 +529,31 @@ export class CubeStacker extends Base_Scene {
         let cut_bound_box = null;
         if(this.counter % 2 === 0){
             let cut_size = current_pos - this.prev_z;
-            console.log(cut_size);
+            console.log("cut size is " + cut_size);
             let block_z_translate = cut_size > 0 ? current_pos + this.next[2] : current_pos - this.next[2];
             cut_block_transform = cut_block_transform.times(Mat4.translation(this.prev_x, this.next[1], block_z_translate)).times(Mat4.scale(this.next[0], this.scaling_factor, cut_size));
-            let bounding_box = this.placed_bounding_boxes[this.placed_bounding_boxes.length -1];
-            let z_min = bounding_box.minZ;
-            let z_max = bounding_box.maxZ;
-            let temp = z_min;
+            let bounding_box = this.placed_blocks[this.placed_blocks.length -1].bounding_Box;
 
-            z_min = cut_size > 0 ? z_min + cut_size : z_max;
-            z_max = cut_size > 0 ? temp : z_max + cut_size;
+            let z_min = (Math.abs(cut_size) * -1) + block_z_translate;
+            let z_max = Math.abs(cut_size) + block_z_translate;
+            console.log(z_min);
+            console.log(z_max);
 
             cut_bound_box = new Bounding_Box(bounding_box.minX, bounding_box.maxX, z_min, z_max);
             console.log("Adding cut bounding box with x_min " + bounding_box.minX + ", x_max " + bounding_box.maxX + ", z_min " + z_min + ", z_max " + z_max);
         }
         else {
             let cut_size = current_pos - this.prev_x;
-            console.log(cut_size);
+            console.log("cut size is " + cut_size);
             let block_x_translate = cut_size > 0 ? current_pos + this.next[0] : current_pos - this.next[0];
             cut_block_transform = cut_block_transform.times(Mat4.translation(block_x_translate, this.next[1], this.prev_z)).times(Mat4.scale(cut_size, this.scaling_factor, this.next[2]));
-            let bounding_box = this.placed_bounding_boxes[this.placed_bounding_boxes.length -1];
-            let x_min = bounding_box.minX;
-            let x_max = bounding_box.maxX;
-            let temp = x_min;
-            x_min = cut_size > 0 ? x_min + cut_size : x_max;
-            x_max = cut_size > 0 ? temp : x_max + cut_size;
+            let bounding_box = this.placed_blocks[this.placed_blocks.length -1].bounding_Box;
+
+            let x_min = (Math.abs(cut_size) * -1) + block_x_translate;
+            let x_max = Math.abs(cut_size) + block_x_translate;
+            console.log(x_min);
+            console.log(x_max);
+
             cut_bound_box = new Bounding_Box(x_min, x_max, bounding_box.minZ, bounding_box.maxZ);
             console.log("Adding cut bounding box with x_min " + x_min + ", x_max " + x_max + ", z_min " + bounding_box.minZ + ", z_max " + bounding_box.maxZ);
         }
@@ -579,15 +578,12 @@ export class CubeStacker extends Base_Scene {
 
             console.log(y_pos);
             const floor = Math.floor((y_pos - 5) / (this.scaling_factor * 2));
-            const ceil = Math.ceil((y_pos - 5) / (this.scaling_factor * 2));
-            console.log("Checking floor " + floor + " and ceil " + ceil);
-            if (block.bounding_Box.collides(this.placed_blocks[floor].bounding_Box)
-            ||  block.bounding_Box.collides(this.placed_blocks[ceil].bounding_Box)) {
+            console.log("Checking against " + floor);
+            console.log(this.placed_blocks[floor].bounding_Box);
+            if (block.bounding_Box.collides(this.placed_blocks[floor].bounding_Box)) {
                 return false;
             }
             console.log(block.bounding_Box);
-            console.log(this.placed_blocks[floor].bounding_Box);
-            console.log(this.placed_blocks[ceil].bounding_Box);
             return true;
         });
 
