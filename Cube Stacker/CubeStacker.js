@@ -490,36 +490,24 @@ export class CubeStacker extends Base_Scene {
         let place_block_transform = Mat4.identity();
         let bounding_box;
         if(this.counter % 2 === 0){
-            let cut_size = current_pos - this.prev_z;
+            //let cut_size = current_pos - this.prev_z;
             place_block_transform = place_block_transform.times(Mat4.translation(this.prev_x,this.next[1],current_pos)).times(Mat4.scale(this.next[0],this.scaling_factor,other_arg));
             let x_min = this.placed_blocks[this.placed_blocks.length - 1].bounding_Box.minX;
             let x_max = this.placed_blocks[this.placed_blocks.length - 1].bounding_Box.maxX;
-            let z_min = this.placed_blocks[this.placed_blocks.length - 1].bounding_Box.minZ;
-            let z_max = this.placed_blocks[this.placed_blocks.length - 1].bounding_Box.maxZ;
-            if (cut_size > 0) {
-                z_max = 5 - cut_size;
-            }
-            else {
-                z_min = -5 - cut_size;
-            }
+            let z_min = (Math.abs(other_arg) * -1) + current_pos;
+            let z_max = Math.abs(other_arg) + current_pos;
             bounding_box = new Bounding_Box(x_min, x_max, z_min, z_max);
-            console.log("Adding placed bounding box with x_min " + x_min + ", x_max " + x_max + ", z_min " + z_min + ", z_max " + z_max);
+            console.log("Adding placed bounding box in position " + this.placed_blocks.length + " with x_min " + x_min + ", x_max " + x_max + ", z_min " + z_min + ", z_max " + z_max);
         }
         else {
-            let cut_size = current_pos - this.prev_x;
+            //let cut_size = current_pos - this.prev_x;
             place_block_transform = place_block_transform.times(Mat4.translation(current_pos,this.next[1],this.prev_z)).times(Mat4.scale(other_arg,this.scaling_factor,this.next[2]));
-            let x_min = this.placed_blocks[this.placed_blocks.length - 1].bounding_Box.minX;
-            let x_max = this.placed_blocks[this.placed_blocks.length - 1].bounding_Box.maxX;
+            let x_min = (Math.abs(other_arg) * -1) + current_pos;
+            let x_max = Math.abs(other_arg) + current_pos;
             let z_min = this.placed_blocks[this.placed_blocks.length - 1].bounding_Box.minZ;
             let z_max = this.placed_blocks[this.placed_blocks.length - 1].bounding_Box.maxZ;
-            if (cut_size > 0) {
-                x_max = 5 - cut_size;
-            }
-            else {
-                x_min = -5 - cut_size;
-            }
             bounding_box = new Bounding_Box(x_min, x_max, z_min, z_max);
-            console.log("Adding placed bounding box with x_min " + x_min + ", x_max " + x_max + ", z_min " + z_min + ", z_max " + z_max);
+            console.log("Adding placed bounding box in position " + this.placed_blocks.length + " with x_min " + x_min + ", x_max " + x_max + ", z_min " + z_min + ", z_max " + z_max);
         }
         return new Block(place_block_transform, bounding_box);
     }
@@ -536,8 +524,6 @@ export class CubeStacker extends Base_Scene {
 
             let z_min = (Math.abs(cut_size) * -1) + block_z_translate;
             let z_max = Math.abs(cut_size) + block_z_translate;
-            console.log(z_min);
-            console.log(z_max);
 
             cut_bound_box = new Bounding_Box(bounding_box.minX, bounding_box.maxX, z_min, z_max);
             console.log("Adding cut bounding box with x_min " + bounding_box.minX + ", x_max " + bounding_box.maxX + ", z_min " + z_min + ", z_max " + z_max);
@@ -551,8 +537,6 @@ export class CubeStacker extends Base_Scene {
 
             let x_min = (Math.abs(cut_size) * -1) + block_x_translate;
             let x_max = Math.abs(cut_size) + block_x_translate;
-            console.log(x_min);
-            console.log(x_max);
 
             cut_bound_box = new Bounding_Box(x_min, x_max, bounding_box.minZ, bounding_box.maxZ);
             console.log("Adding cut bounding box with x_min " + x_min + ", x_max " + x_max + ", z_min " + bounding_box.minZ + ", z_max " + bounding_box.maxZ);
@@ -576,18 +560,15 @@ export class CubeStacker extends Base_Scene {
                 return true;
             }
 
-            console.log(y_pos);
             const floor = Math.floor((y_pos - 5) / (this.scaling_factor * 2));
             console.log("Checking against " + floor);
             console.log(this.placed_blocks[floor].bounding_Box);
+            console.log(block.bounding_Box);
             if (block.bounding_Box.collides(this.placed_blocks[floor].bounding_Box)) {
                 return false;
             }
-            console.log(block.bounding_Box);
             return true;
         });
-
-        console.log(this.cut_blocks.length);
     }
 
     //TODO: MAKE THIS SOMETHING REAL
